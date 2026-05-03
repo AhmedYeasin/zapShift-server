@@ -36,9 +36,9 @@ async function run() {
         query.senderEmail = email;
       }
 
+      const options = {sort: {createdAt: -1}};
       
-      const cursor = parcelCollection.find(query);
-
+      const cursor = parcelCollection.find(query, options);
       const result = await cursor.toArray();
       res.send(result);
     });
