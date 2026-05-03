@@ -36,6 +36,7 @@ async function run() {
         query.senderEmail = email;
       }
 
+      
       const cursor = parcelCollection.find(query);
 
       const result = await cursor.toArray();
@@ -44,6 +45,7 @@ async function run() {
 
     app.post("/parcels", async (req, res) => {
       const parcel = req.body;
+      parcel.createdAt = new Date();
       const result = await parcelCollection.insertOne(parcel);
       res.send(result);
     });
