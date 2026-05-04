@@ -3,7 +3,7 @@ const cors = require("cors");
 const app = express();
 require("dotenv").config();
 const port = process.env.PORT || 3000;
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 // middleware
 app.use(express.json());
@@ -26,7 +26,7 @@ async function run() {
     await client.connect();
 
     const db = client.db("zapshift_db");
-    const parcelCollection = db.collection("parcels");
+    const parcelsCollection = db.collection("parcels");
 
     // parcel API
     app.get("/parcels", async (req, res) => {
@@ -36,9 +36,9 @@ async function run() {
         query.senderEmail = email;
       }
 
-      const options = {sort: {createdAt: -1}};
-      
-      const cursor = parcelCollection.find(query, options);
+      const options = { sort: { createdAt: -1 } };
+
+      const cursor = parcelsCollection.find(query, options);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -46,9 +46,17 @@ async function run() {
     app.post("/parcels", async (req, res) => {
       const parcel = req.body;
       parcel.createdAt = new Date();
-      const result = await parcelCollection.insertOne(parcel);
+      const result = await parcelsCollection.insertOne(parcel);
       res.send(result);
     });
+
+    app.delete("/parcels/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+
+      const result = await parcelsCollection.deleteOne(query);
+      res.send(result);
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
