@@ -75,12 +75,19 @@ async function run() {
         line_items: [
           {
             // Provide the exact Price ID (for example, price_1234) of the product you want to sell
-            price: '{{PRICE_ID}}',
+            price_data: {
+              currency: 'USD',
+              unit_amount: 1500,
+              product_data: {
+                name: paymentInfo.parcelName,
+              }
+            },
             quantity: 1,
           },
         ],
+        customer_email: paymentInfo.senderEmail,
         mode: 'payment',
-        success_url: `${YOUR_DOMAIN}?success=true`,
+        success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success`,
       })
     })
 
