@@ -4,6 +4,7 @@ const app = express();
 require("dotenv").config();
 const port = process.env.PORT || 3000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const stripe = require('stripe')(process.env.STRIPE_SECRET);
 
 // middleware
 app.use(express.json());
@@ -43,12 +44,14 @@ async function run() {
       res.send(result);
     });
 
+    // for payment processing
     app.get("/parcels/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await parcelsCollection.findOne(query);
       res.send(result);
     });
+    // -------------------- //
 
     app.post("/parcels", async (req, res) => {
       const parcel = req.body;
@@ -63,6 +66,22 @@ async function run() {
 
       const result = await parcelsCollection.deleteOne(query);
       res.send(result);
+    })
+
+    // payment related API
+    app.post('/create-checkout-session', async (req, res) => {
+      const paymentInfo = req.body;
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            // Provide the exact Price ID (for example, price_1234) of the product you want to sell
+            price: '{{PRICE_ID}}',
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${YOUR_DOMAIN}?success=true`,
+      })
     })
 
     // Send a ping to confirm a successful connection
