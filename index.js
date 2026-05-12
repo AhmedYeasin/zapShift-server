@@ -92,7 +92,7 @@ async function run() {
           parcelId: paymentInfo.parcelId
         },
         success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success`,
-        cancel_url: `${process.env.SITE_DOMAIN}/dashboard/payment-calncelled`,
+        cancel_url: `${process.env.SITE_DOMAIN}/dashboard/payment-cancelled`,
       })
       res.send({ url: session.url });
     })
