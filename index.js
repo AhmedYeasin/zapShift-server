@@ -70,10 +70,10 @@ async function run() {
 
     // payment related API
     // alternative API for payment processing
-    app.post('payment-checkout-session', async (req, res) => {
+    app.post('/payment-checkout-session', async (req, res) => {
       const paymentInfo = req.body;
       const amount = parseInt(paymentInfo.cost) * 100;
-      const session = await stripe.checkout.sessions({
+      const session = await stripe.checkout.sessions.create({
         line_items: [
           {
 
@@ -125,6 +125,11 @@ async function run() {
         cancel_url: `${process.env.SITE_DOMAIN}/dashboard/payment-cancelled`,
       })
       res.send({ url: session.url });
+    })
+
+    app.patch('/payment-success', async (req,res)=>{
+      const sessionId = req.query.session_id;
+      res.send({ success: true})
     })
 
     // Send a ping to confirm a successful connection
