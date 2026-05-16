@@ -2,8 +2,20 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 require("dotenv").config();
-const port = process.env.PORT || 3000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const port = process.env.PORT || 3000;
+
+// parcel tracking API
+const crypto = require("crypto");
+function generateTrackingid() {
+  const prefix = "PRCL"; //brand prefix
+  const date = new Date().toISOString().slice(0, 10).replace(/-/g, "")
+  const random = crypto.randomBytes(3).toString('hex').toUpperCase();
+
+  return `${prefix}=${date}-${random}`;
+}
+
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET);
 
 // middleware
@@ -134,6 +146,8 @@ async function run() {
       const session = await stripe.checkout.sessions.retrieve(sessionId);
 
       console.log('session id is->', session)
+      const trackingId = generateTrackingid();
+
       if (session.payment_status === 'paid') {
         const id = session.metadata.parcelId;
         const query = { _id: new ObjectId(id) }
@@ -141,7 +155,8 @@ async function run() {
         const update = {
           $set: {
             paymentStatus: 'paid',
-            createdAt: new Date()
+            createdAt: new Date(),
+            trackingId: trackingId
 
           }
         }
@@ -157,12 +172,18 @@ async function run() {
           parcelname: session.metadata.parcelname,
           transactionId: session.payment_intent,
           paymentStatus: session.payment_status,
-          trackingId: ''
+          trackingId: trackingId
         }
 
         if (session.payment_status === 'paid') {
           const resultPayment = await paymentCollection.insertOne(paymentRecord)
-          res.send({ success: true, modifyResult: result, paymentInfo: resultPayment })
+          res.send({
+            success: true,
+            trackingId: trackingId,
+            transactionId: session.payment_intent,
+            modifyResult: result,
+            paymentInfo: resultPayment
+          })
         }
 
       }
