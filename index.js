@@ -130,20 +130,10 @@ async function run() {
     app.patch('/payment-success', async (req, res) => {
       const sessionId = req.query.session_id;
       const session = await stripe.checkout.sessions.retrieve(sessionId);
-      console.log('session details', sessoin)
-      if (session.payment_status === 'paid') {
-        const id = session.metadata.parcelId;
-        const query = { _id: new ObjectId(id) };
-        const update = {
-          $set:{
-            paymentStatus: 'paid', 
-          }
-        }
-
-        const result = await parcelsCollection.updateOne(query, update);
-        res.send(result)
-      }
-      res.send({ success: false })
+      
+      console.log('session id is->', session)
+      res.send({success: true})
+    
     })
 
     // Send a ping to confirm a successful connection
