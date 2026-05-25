@@ -147,14 +147,18 @@ async function run() {
       console.log('session id is->', session)
 
       const transactionId = session.payment_intent;
-      const query = {transactionId: transactionId}
+      const query = { transactionId: transactionId }
 
       const paymentExist = await paymentCollection.findOne(query);
 
-      if(paymentExist){
-        return res.send({message: 'Payment already recorded', transactionId})
+      if (paymentExist) {
+        return res.send({
+          message: 'Payment already recorded',
+          transactionId,
+          trackingId: paymentExist.trackingId
+        })
       }
-      
+
       const trackingId = generateTrackingid();
 
       if (session.payment_status === 'paid') {
@@ -198,6 +202,18 @@ async function run() {
       }
       res.send({ success: false })
 
+    })
+
+    // payment related API
+    app.get('/payments', async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.customerEmail = email;
+      }
+      const cursor = paymentCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
     })
 
     // Send a ping to confirm a successful connection
